@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DigiReceipt - Dashboard</title>
+  <style>
+    body { font-family:'Poppins',sans-serif; background:linear-gradient(to right,#a8edea,#fed6e3); margin:0; padding:0; min-height:100vh; }
+    header { background:#007bff; color:white; padding:15px; text-align:center; }
+    .container { padding:20px; text-align:center; max-width:960px; margin:0 auto; }
+    h2 { color:#333; }
+    .section { display:none; background:#fff; padding:18px; margin:20px auto; border-radius:12px; width:100%; box-shadow:0 4px 10px rgba(0,0,0,0.08); text-align:left; }
+    .form-row { display:flex; gap:10px; flex-wrap:wrap; }
+    .form-row input, .form-row textarea { flex:1 1 220px; }
+    input,textarea { width:100%; padding:10px; margin:8px 0; border:1px solid #ccc; border-radius:8px; box-sizing:border-box; font-size:14px; }
+    textarea { min-height:80px; resize:vertical; }
+    button { background-color:#007bff; color:white; border:none; padding:10px 16px; border-radius:8px; cursor:pointer; margin-top:10px; }
+    button.secondary { background:#6c757d; }
+    .receipt { border:1px solid #e0e0e0; border-radius:10px; padding:12px; margin:10px 0; background:#fafafa; }
+    .receipt small { color:#666; }
+    .flex-between { display:flex; justify-content:space-between; align-items:center; gap:10px; }
+    .controls { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
+    .switch-btn { background-color:#28a745; margin-left:10px; }
+    .switch-btn:hover { background-color:#218838; }
+    a button { text-decoration:none; }
+    @media(max-width:700px){ .form-row{ flex-direction:column; } .flex-between{ flex-direction:column; align-items:flex-start; gap:6px; } }
+  </style>
+</head>
+<body>
+<header>
+  <h1>DigiReceipt Dashboard</h1>
+</header>
+<div class="container">
+  <h2 id="welcome">Welcome</h2>
+
+  <!-- Shopkeeper Section -->
+  <div id="shopSection" class="section">
+    <h3>🧾 Create Receipt (Shopkeeper)</h3>
+    <div class="form-row">
+      <input type="text" id="customerName" placeholder="Customer Name" />
+      <input type="tel" id="customerMobile" placeholder="Customer Mobile (10 digits)" />
+    </div>
+    <div class="form-row">
+      <input type="email" id="customerEmail" placeholder="Customer Email (optional)" />
+      <input type="text" id="itemDetails" placeholder="Items / Description" />
+    </div>
+    <div class="form-row">
+      <input type="number" id="totalAmount" placeholder="Total Amount (₹)" />
+      <input type="text" id="receiptRef" placeholder="Receipt Ref (optional)" />
+    </div>
+    <textarea id="notes" placeholder="Notes (optional)"></textarea>
+
+    <div style="margin-top:15px;">
+      <a href="receipt.html"><button style="background:#28a745;">Receipt Template</button></a>
+    </div>
+
+    <div class="flex-between" style="margin-top:10px;">
+      <div>
+        <button onclick="createReceipt()">Done & Share</button>
+        <button class="secondary" onclick="clearShopInputs()">Clear</button>
+      </div>
+      <div style="font-size:14px; color:#333;">
+        <strong>Shop:</strong> <span id="shopLabel"></span>
+      </div>
+    </div>
+
+    <h4 style="margin-top:18px;">Your Sent Receipts</h4>
+    <div id="sentReceipts"></div>
+  </div>
+
+  <!-- Customer Section -->
+  <div id="customerSection" class="section">
+    <div class="controls">
+      <input type="text" id="searchInput" placeholder="Search by shop name, item or date..." oninput="renderCustomerReceipts()" />
+      <button class="secondary" onclick="renderCustomerReceipts()">Search</button>
+    </div>
+
+    <div style="margin-bottom:15px;">
+      <a href="receipt.html"><button style="background:#28a745;">Download Receipt</button></a>
+    </div>
+
+    <h3>📜 Recent & History Receipts</h3>
+    <div id="receiptList"></div>
+  </div>
+
+  <div style="text-align:center; margin-top:20px;">
+    <button onclick="goToProfile()">Profile</button>
+    <button class="switch-btn" id="switchBtn" onclick="switchRole()">Switch Dashboard</button>
+    <button class="secondary" onclick="logout()">Logout</button>
+  </div>
+</div>
+
+<script>
+const user=JSON.parse(localStorage.getItem('user'));
+if(!user){ alert('Please login / sign up first!'); window.location.href='login.html'; }
+document.getElementById('welcome').innerText = user.role==='shopkeeper'
+  ? `Welcome, ${user.shopName||user.name} (Shopkeeper)`
+  : `Welcome, ${user.name} (Customer)`;
+document.getElementById('shopLabel').innerText = user.shopName||user.name;
+
+if(user.role==='shopkeeper'){document.getElementById('shopSection').style.display='block';loadSentReceipts();}
+else{document.getElementById('customerSection').style.display='block';renderCustomerReceipts();}
+
+function switchRole(){ user.role=user.role==='shopkeeper'?'customer':'shopkeeper'; alert('Switched to '+(user.role==='shopkeeper'?'Shopkeeper':'Customer')+' Dashboard!'); localStorage.setItem('user',JSON.stringify(user)); window.location.reload(); }
+
+function normalizePhone(p){if(!p)return'';return p.toString().replace(/\s+/g,'').replace(/[^0-9+]/g,'');}
+
+function createReceipt(){
+  const customerName=document.getElementById('customerName').value.trim();
+  const customerMobile=normalizePhone(document.getElementById('customerMobile').value.trim());
+  const customerEmail=document.getElementById('customerEmail').value.trim().toLowerCase();
+  const itemDetails=document.getElementById('itemDetails').value.trim();
+  const totalAmount=document.getElementById('totalAmount').value.trim();
+  const notes=document.getElementById('notes').value.trim();
+  const receiptRef=document.getElementById('receiptRef').value.trim();
+  if(!customerName || (!customerEmail && !customerMobile) || !itemDetails || !totalAmount){ alert('Please enter customer name, (mobile or email), items and total amount.'); return; }
+  const receipt={id:'rcpt_'+Date.now(),shopName:user.shopName||user.name,shopMobile:user.mobile||'',shopEmail:user.email||'',customerName,customerMobile,customerEmail,itemDetails,totalAmount,notes,receiptRef,date:new Date().toISOString()};
+  const sent=JSON.parse(localStorage.getItem('sentReceipts'))||[]; sent.unshift(receipt); localStorage.setItem('sentReceipts',JSON.stringify(sent));
+  const all=JSON.parse(localStorage.getItem('allReceipts'))||[]; all.unshift(receipt); localStorage.setItem('allReceipts',JSON.stringify(all));
+  alert('Receipt saved and shared!'); loadSentReceipts(); clearShopInputs();
+}
+
+function clearShopInputs(){['customerName','customerMobile','customerEmail','itemDetails','totalAmount','notes','receiptRef'].forEach(id=>document.getElementById(id).value='');}
+
+function loadSentReceipts(){ const sent=JSON.parse(localStorage.getItem('sentReceipts'))||[]; const div=document.getElementById('sentReceipts'); div.innerHTML=sent.length?sent.map(r=>renderReceiptCard(r,true)).join(''):'<p>No receipts yet.</p>'; }
+
+function renderReceiptCard(r,isShopView=false){
+  const date=new Date(r.date).toLocaleString();
+  return `<div class="receipt" id="${r.id}">
+    <div class="flex-between">
+      <div>
+        <strong>Receipt Ref:</strong> ${r.receiptRef||'-'}<br>
+        <strong>Shop:</strong> ${r.shopName}<br>
+        <strong>Customer:</strong> ${r.customerName}<br>
+        <strong>Mobile:</strong> ${r.customerMobile}<br>
+        <strong>Email:</strong> ${r.customerEmail}<br>
+        <strong>Items:</strong> ${r.itemDetails}<br>
+        <strong>Total:</strong> ₹${r.totalAmount}<br>
+      </div>
+      <div style="text-align:right;">
+        <small>${date}</small><br>
+        ${isShopView?`<button onclick="editReceipt('${r.id}')">Edit</button>
+        <button class="secondary" onclick="resendReceipt('${r.id}')">Resend</button>
+        <button class="secondary" onclick="deleteReceipt('${r.id}')">Delete</button>`:''}
+      </div>
+    </div>
+    ${r.notes?`<hr><div><strong>Notes:</strong> ${r.notes}</div>`:''}
+  </div>`;
+}
+
+function renderCustomerReceipts(){
+  const all=JSON.parse(localStorage.getItem('allReceipts'))||[];
+  const search=document.getElementById('searchInput')?.value.trim().toLowerCase()||'';
+  const matched=all.filter(r=>{ const matchUser=(user.email && r.customerEmail===user.email.toLowerCase()) || (user.mobile && normalizePhone(r.customerMobile)===normalizePhone(user.mobile)); if(!matchUser) return false; if(!search) return true; return (r.shopName?.toLowerCase().includes(search))||(r.itemDetails?.toLowerCase().includes(search))||(r.receiptRef?.toLowerCase().includes(search))||(new Date(r.date).toLocaleString().toLowerCase().includes(search)); });
+  document.getElementById('receiptList').innerHTML=matched.length?matched.map(r=>renderReceiptCard(r,false)).join(''):'<p>No receipts found for you.</p>';
+}
+
+function deleteReceipt(id){ if(!confirm('Are you sure you want to delete this receipt?')) return; let sent=JSON.parse(localStorage.getItem('sentReceipts'))||[]; sent=sent.filter(r=>r.id!==id); localStorage.setItem('sentReceipts',JSON.stringify(sent)); let all=JSON.parse(localStorage.getItem('allReceipts'))||[]; all=all.filter(r=>r.id!==id); localStorage.setItem('allReceipts',JSON.stringify(all)); alert('Receipt deleted!'); loadSentReceipts(); renderCustomerReceipts(); }
+
+function resendReceipt(id){ const all=JSON.parse(localStorage.getItem('allReceipts'))||[]; const receipt=all.find(r=>r.id===id); if(!receipt) return alert('Receipt not found'); const newReceipt={...receipt,id:'rcpt_'+Date.now(),date:new Date().toISOString()}; const sent=JSON.parse(localStorage.getItem('sentReceipts'))||[]; sent.unshift(newReceipt); localStorage.setItem('sentReceipts',JSON.stringify(sent)); all.unshift(newReceipt); localStorage.setItem('allReceipts',JSON.stringify(all)); alert('Receipt resent!'); loadSentReceipts(); renderCustomerReceipts(); }
+
+function editReceipt(id){ const sent=JSON.parse(localStorage.getItem('sentReceipts'))||[]; const receipt=sent.find(r=>r.id===id); if(!receipt) return alert('Receipt not found'); document.getElementById('customerName').value=receipt.customerName; document.getElementById('customerMobile').value=receipt.customerMobile; document.getElementById('customerEmail').value=receipt.customerEmail; document.getElementById('itemDetails').value=receipt.itemDetails; document.getElementById('totalAmount').value=receipt.totalAmount; document.getElementById('notes').value=receipt.notes; document.getElementById('receiptRef').value=receipt.receiptRef; deleteReceipt(id); }
+
+function goToProfile(){ alert('Profile page not implemented yet.'); }
+function logout(){ localStorage.removeItem('user'); window.location.href='login.html'; }
+</script>
+</body>
+</html>
