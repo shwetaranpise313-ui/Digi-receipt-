@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DigiReceipt | Editable Receipt</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(120deg, #a8edea, #fed6e3);
+      margin: 0;
+      padding: 25px;
+      color: #333;
+    }
+
+    .receipt-container {
+      max-width: 950px;
+      margin: auto;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+      border: 4px solid #00aaff;
+      padding: 25px 35px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      border-bottom: 3px solid #00aaff;
+      padding-bottom: 10px;
+      margin-bottom: 15px;
+      background: linear-gradient(to right, #00aaff, #00ffcc);
+      color: white;
+      border-radius: 10px 10px 0 0;
+      flex-wrap: wrap;
+    }
+
+    header img {
+      width: 85px;
+      height: 85px;
+      margin-right: 20px;
+      border-radius: 10px;
+      object-fit: cover;
+      border: 2px solid white;
+    }
+
+    .shop-details h2 {
+      margin: 0;
+      font-size: 1.5em;
+      letter-spacing: 1px;
+    }
+
+    .shop-details p {
+      margin: 3px 0;
+      font-size: 0.9em;
+    }
+
+    h3 {
+      text-align: center;
+      text-transform: uppercase;
+      margin-top: 15px;
+      border-bottom: 2px dashed #00aaff;
+      padding-bottom: 5px;
+      color: #0077b6;
+    }
+
+    .invoice-info, .bill-info {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      margin: 10px 0;
+    }
+
+    label {
+      font-weight: 600;
+      color: #005f73;
+    }
+
+    input {
+      border: none;
+      border-bottom: 1px solid #ccc;
+      padding: 4px;
+      width: 150px;
+      font-family: inherit;
+      background: transparent;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #00aaff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      table-layout: fixed;
+      word-wrap: break-word;
+    }
+
+    table, th, td {
+      border: 1px solid #00aaff;
+      text-align: center;
+    }
+
+    th {
+      background-color: #00aaff;
+      color: white;
+    }
+
+    th, td {
+      padding: 8px;
+      font-size: 0.9em;
+      vertical-align: middle;
+    }
+
+    td input {
+      width: 100%;
+      border: none;
+      border-bottom: 1px solid #ccc;
+      text-align: center;
+    }
+
+    td button {
+      background: #ff4d4d;
+      color: white;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    td button:hover {
+      background: #ff1a1a;
+    }
+
+    button {
+      background: linear-gradient(90deg, #00aaff, #00ffcc);
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      margin-top: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: transform 0.2s ease;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+    }
+
+    .totals {
+      margin-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .amount-section {
+      text-align: right;
+    }
+
+    .amount-section p {
+      margin: 3px 0;
+    }
+
+    footer {
+      text-align: right;
+      border-top: 2px dashed #00aaff;
+      padding-top: 10px;
+      margin-top: 25px;
+      font-size: 0.9em;
+    }
+
+    .signature {
+      text-align: right;
+      margin-top: 10px;
+    }
+
+    .signature img {
+      width: 120px;
+      height: auto;
+      margin-top: 5px;
+    }
+
+    .print-btn {
+      float: right;
+      background: linear-gradient(90deg, #28a745, #6ee7b7);
+    }
+
+    .share-btn {
+      float: right;
+      background: linear-gradient(90deg, #007bff, #00d4ff);
+      margin-right: 10px;
+    }
+
+    .back-btn {
+      background: linear-gradient(90deg, #6c757d, #adb5bd);
+    }
+
+    @media print {
+      button { display: none; }
+      body { background: white; }
+      .receipt-container { box-shadow: none; border: 1px solid #000; }
+      header { background: white; color: black; border: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="receipt-container">
+    <header>
+      <img id="logoPreview" src="https://cdn-icons-png.flaticon.com/512/3135/3135706.png" alt="Shop Logo">
+      <div class="shop-details">
+        <h2 id="shopName" contenteditable="true">Your Shop Name</h2>
+        <p id="shopAddress" contenteditable="true">Address: Enter your address here</p>
+        <p id="shopContact" contenteditable="true">Ph: +91 XXXXX XXXXX | Email: example@email.com</p>
+        <input type="file" id="logoUpload" accept="image/*" style="display:none;">
+        <button onclick="document.getElementById('logoUpload').click()">🖼️ Upload Logo</button>
+        <button onclick="saveShopDetails()">💾 Save Header</button>
+      </div>
+    </header>
+
+    <h3>Receipt</h3>
+
+    <div class="invoice-info">
+      <div>
+        <label>Invoice No:</label>
+        <input id="invoiceNo" value="001">
+      </div>
+      <div>
+        <label>Date:</label>
+        <input type="date" id="invoiceDate">
+      </div>
+    </div>
+
+    <div class="bill-info">
+      <div>
+        <label>Bill To:</label>
+        <input id="billName" placeholder="Customer Name">
+      </div>
+      <div>
+        <label>Contact No.:</label>
+        <input id="billContact" placeholder="Customer Contact">
+      </div>
+    </div>
+
+    <table id="itemsTable">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Item</th>
+          <th>Qty</th>
+          <th>Unit</th>
+          <th>Price</th>
+          <th>Amount</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <button onclick="addItem()">+ Add Item</button>
+
+    <div class="totals">
+      <div>
+        <p><b>Amount in Words:</b> <span id="amountWords">Zero Rupees only</span></p>
+        <p><b>Terms & Conditions:</b> <span id="termsText" contenteditable="true">Goods once sold will not be returned.</span></p>
+        <button onclick="saveTerms()">💾 Save Terms</button>
+      </div>
+      <div class="amount-section">
+        <p>Sub Total: ₹ <span id="subtotal">0.00</span></p>
+        <p>Total: ₹ <span id="total">0.00</span></p>
+        <p>Received: ₹ <input type="number" id="received" value="0" onchange="calculateTotals()"></p>
+        <p>Balance: ₹ <span id="balance">0.00</span></p>
+      </div>
+    </div>
+
+    <footer>
+      <p>Thank you for doing business with us.</p>
+      <p>For: <b id="footerShop" contenteditable="true">Your Shop Name</b></p>
+      <div class="signature">
+        <label><b>Authorized Signatory:</b></label><br>
+        <img id="signPreview" src="https://cdn-icons-png.flaticon.com/512/1828/1828640.png" alt="Signature">
+        <input type="file" id="signUpload" accept="image/*" style="display:none;">
+        <button onclick="document.getElementById('signUpload').click()">✍️ Upload Signature</button>
+        <button onclick="saveSignature()">💾 Save Signature</button>
+      </div>
+    </footer>
+  </div>
+
+  <button class="back-btn" onclick="window.location.href='dashboard.html'">← Back to Dashboard</button>
+  <button class="share-btn" onclick="shareReceipt()">📤 Share Receipt</button>
+  <button class="print-btn" onclick="window.print()">🖨️ Print / Save</button>
+
+  <script>
+    let items = [];
+
+    function addItem() {
+      const id = Date.now();
+      items.push({ id, name: '', qty: 1, unit: 'Nos', price: 0 });
+      renderItems();
+    }
+
+    function removeItem(id) {
+      items = items.filter(it => it.id !== id);
+      renderItems();
+    }
+
+    function updateItem(id, field, value) {
+      items = items.map(it =>
+        it.id === id
+          ? { ...it, [field]: field === 'name' || field === 'unit' ? value : parseFloat(value) || 0 }
+          : it
+      );
+      renderItems(); // refresh amount instantly
+    }
+
+    function renderItems() {
+      const tbody = document.querySelector("#itemsTable tbody");
+      tbody.innerHTML = '';
+      items.forEach((it, idx) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${idx + 1}</td>
+          <td><input value="${it.name}" onchange="updateItem(${it.id},'name',this.value)"></td>
+          <td><input type="number" value="${it.qty}" onchange="updateItem(${it.id},'qty',this.value)"></td>
+          <td><input value="${it.unit}" onchange="updateItem(${it.id},'unit',this.value)"></td>
+          <td><input type="number" value="${it.price}" onchange="updateItem(${it.id},'price',this.value)"></td>
+          <td>₹ ${(it.qty * it.price).toFixed(2)}</td>
+          <td><button onclick="removeItem(${it.id})">Remove</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+      calculateTotals();
+    }
+
+    function calculateTotals() {
+      const subtotal = items.reduce((sum, it) => sum + it.qty * it.price, 0);
+      document.getElementById('subtotal').innerText = subtotal.toFixed(2);
+      document.getElementById('total').innerText = subtotal.toFixed(2);
+      document.getElementById('amountWords').innerText = convertNumberToWords(subtotal) + " Rupees only";
+      const received = Number(document.getElementById('received').value);
+      document.getElementById('balance').innerText = (subtotal - received).toFixed(2);
+    }
+
+    function convertNumberToWords(num) {
+      const a = ['','One ','Two ','Three ','Four ','Five ','Six ','Seven ','Eight ','Nine ','Ten ','Eleven ','Twelve ','Thirteen ','Fourteen ','Fifteen ','Sixteen ','Seventeen ','Eighteen ','Nineteen '];
+      const b = ['','','Twenty ','Thirty ','Forty ','Fifty ','Sixty ','Seventy ','Eighty ','Ninety '];
+      if ((num = num.toString()).length > 9) return 'Overflow';
+      const n = ('000000000' + num).substr(-9).match(/^(\d{2})(\d{2})(\d{2})(\d{1})(\d{2})$/);
+      if (!n) return '';
+      let str = '';
+      str += (n[1] != 0) ? (a[Number(n[1])] || b[n[1][0]] + a[n[1][1]]) + 'Crore ' : '';
+      str += (n[2] != 0) ? (a[Number(n[2])] || b[n[2][0]] + a[n[2][1]]) + 'Lakh ' : '';
+      str += (n[3] != 0) ? (a[Number(n[3])] || b[n[3][0]] + a[n[3][1]]) + 'Thousand ' : '';
+      str += (n[4] != 0) ? a[Number(n[4])] + 'Hundred ' : '';
+      str += (n[5] != 0) ? 'and ' + (a[Number(n[5])] || b[n[5][0]] + a[n[5][1]]) : '';
+      return str.trim();
+    }
+
+    // === Local Storage ===
+    function saveShopDetails() {
+      const name = document.getElementById('shopName').innerText;
+      const address = document.getElementById('shopAddress').innerText;
+      const contact = document.getElementById('shopContact').innerText;
+      const logo = document.getElementById('logoPreview').src;
+      localStorage.setItem('shopDetails', JSON.stringify({ name, address, contact, logo }));
+      alert('✅ Header details saved!');
+    }
+
+    function loadShopDetails() {
+      const data = JSON.parse(localStorage.getItem('shopDetails'));
+      if (data) {
+        document.getElementById('shopName').innerText = data.name;
+        document.getElementById('shopAddress').innerText = data.address;
+        document.getElementById('shopContact').innerText = data.contact;
+        document.getElementById('logoPreview').src = data.logo;
+        document.getElementById('footerShop').innerText = data.name;
+      }
+      const sign = localStorage.getItem('signature');
+      if (sign) document.getElementById('signPreview').src = sign;
+      const terms = localStorage.getItem('terms');
+      if (terms) document.getElementById('termsText').innerText = terms;
+    }
+
+    function saveSignature() {
+      const sign = document.getElementById('signPreview').src;
+      localStorage.setItem('signature', sign);
+      alert('✅ Signature saved!');
+    }
+
+    function saveTerms() {
+      const terms = document.getElementById('termsText').innerText;
+      localStorage.setItem('terms', terms);
+      alert('✅ Terms & Conditions saved!');
+    }
+
+    document.getElementById('logoUpload').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = evt => document.getElementById('logoPreview').src = evt.target.result;
+        reader.readAsDataURL(file);
+      }
+    });
+
+    document.getElementById('signUpload').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = evt => document.getElementById('signPreview').src = evt.target.result;
+        reader.readAsDataURL(file);
+      }
+    });
+
+    function shareReceipt() {
+      const shop = document.getElementById('shopName').innerText;
+      const total = document.getElementById('total').innerText;
+      const customer = document.getElementById('billName').value;
+      const message = `🧾 *${shop}* Receipt\nCustomer: ${customer}\nTotal: ₹${total}\nThank you for your business!`;
+      const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
+      window.open(url, '_blank');
+     setTimeout(() => window.location.href = 'thankyou.html', 2000);
+    }
+
+    function printReceipt() {
+      window.print();
+      setTimeout(() => window.location.href = 'thankyou.html', 2000);
+    }
+
+
+    window.onload = () => {
+      loadShopDetails();
+      document.getElementById('invoiceDate').value = new Date().toISOString().split('T')[0];
+      addItem();
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+/* --- Basic Page Styling --- */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f2f8f5;
+  color: #333;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
+
+/* --- Header --- */
+header {
+  background-color: #4CAF50;
+  color: white;
+  padding: 20px;
+  font-size: 24px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* --- Main Section --- */
+main {
+  padding: 40px;
+}
+
+p {
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+
+/* --- Button Styling --- */
+button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  background-color: #45a049;
+  transform: scale(1.05);
+}
+
+/* --- Footer --- */
+footer {
+  background-color: #222;
+  color: #bbb;
+  padding: 15px;
+  font-size: 14px;
+}

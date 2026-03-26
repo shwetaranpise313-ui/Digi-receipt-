@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DigiReceipt - Sign Up</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #a8edea, #fed6e3);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      width: 350px;
+      text-align: center;
+    }
+    input, select, button {
+      width: 90%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover { background-color: #0056b3; }
+    #shopDetails {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Create Account</h2>
+    <input type="text" id="name" placeholder="Full Name" required>
+    <input type="tel" id="mobile" placeholder="Mobile Number" required>
+    <input type="text" id="location" placeholder="Location" required>
+    <input type="email" id="email" placeholder="Email" required>
+    <input type="password" id="password" placeholder="Password" required>
+
+    <select id="role" onchange="toggleShopField()" required>
+      <option value="">Select Role</option>
+      <option value="customer">Customer</option>
+      <option value="shopkeeper">Shopkeeper</option>
+    </select>
+
+    <div id="shopDetails">
+      <input type="text" id="shopName" placeholder="Shop Name">
+    </div>
+
+    <button onclick="signup()">Sign Up</button>
+    <p>Already have an account? <a href="login.html">Login</a></p>
+  </div>
+
+  <script>
+    function toggleShopField() {
+      const role = document.getElementById('role').value;
+      document.getElementById('shopDetails').style.display =
+        role === 'shopkeeper' ? 'block' : 'none';
+    }
+
+    function signup() {
+      const name = document.getElementById('name').value.trim();
+      const mobile = document.getElementById('mobile').value.trim();
+      const location = document.getElementById('location').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const role = document.getElementById('role').value;
+      const shopName = document.getElementById('shopName').value.trim();
+
+      if (!name || !mobile || !location || !email || !password || !role) {
+        alert("Please fill all required fields!");
+        return;
+      }
+
+      if (role === 'shopkeeper' && !shopName) {
+        alert("Please enter your Shop Name!");
+        return;
+      }
+
+      const user = { name, mobile, location, email, password, role, shopName };
+      localStorage.setItem('user', JSON.stringify(user));
+
+      alert("Account created successfully!");
+      window.location.href = "dashboard.html";
+    }
+  </script>
+</body>
+</html>
